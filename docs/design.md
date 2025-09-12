@@ -6,23 +6,32 @@
 **テーブル名：** users  
 **目的：** 匿名ユーザーの管理
 
-| 項目名 | データ型 | 説明 | 制約 |
-|--------|----------|------|------|
-| ユーザーID | UUID | 主キー | NOT NULL, PRIMARY KEY |
-| 匿名ID | 文字列 | 端末識別用ID | NOT NULL, UNIQUE |
-| 作成日時 | タイムスタンプ | ユーザー作成日時 | DEFAULT NOW() |
+| 項目名 | 物理名 | データ型 | 桁数 | 説明 | 制約 |
+|--------|---------|----------|------|------|------|
+| ID | id | UUID | - | 主キー | NOT NULL, PRIMARY KEY |
+| 端末識別ID | device_id | VARCHAR | 255 | 端末識別用ID | NOT NULL, UNIQUE |
+| ユーザー名 | user_name | VARCHAR | 10 | 表示用ユーザー名 | NULL |
+| プロフィール画像 | profile_image | VARCHAR | 500 | プロフィール画像URL | NULL |
+| 登録者 | created_by | UUID | - | 登録者ID | NULL |
+| 登録日時 | created_at | TIMESTAMP | - | 登録日時 | DEFAULT NOW() |
+| 更新者 | updated_by | UUID | - | 更新者ID | NULL |
+| 更新日時 | updated_at | TIMESTAMP | - | 更新日時 | DEFAULT NOW() |
 
 ### 季節キーワードテーブル
 **テーブル名：** season_keywords  
 **目的：** 季節ごとのキーワード管理
 
-| 項目名 | データ型 | 説明 | 制約 |
-|--------|----------|------|------|
-| キーワードID | UUID | 主キー | NOT NULL, PRIMARY KEY |
-| キーワード名 | 文字列 | 季節キーワード（例：桜、花火） | NOT NULL |
-| 季節番号 | 整数 | 1:春、2:夏、3:秋、4:冬 | 1-4の範囲 |
-| 月 | 整数 | 該当月（1-12） | 1-12の範囲 |
-| 表示順序 | 整数 | 画面での表示順 | DEFAULT 0 |
+| 項目名 | 物理名 | データ型 | 桁数 | 説明 | 制約 |
+|--------|---------|----------|------|------|------|
+| ID | id | UUID | - | 主キー | NOT NULL, PRIMARY KEY |
+| キーワード名 | keyword_name | VARCHAR | 20 | 季節キーワード（例：桜、花火） | NOT NULL |
+| 季節区分 | season_type | VARCHAR | 1 | 1:春、2:夏、3:秋、4:冬 | CHECK(season_type IN ('1','2','3','4')) |
+| 月 | month | INTEGER | - | 該当月（1-12） | CHECK(month BETWEEN 1 AND 12) |
+| 表示順序 | display_order | INTEGER | - | 画面での表示順 | DEFAULT 0 |
+| 登録者 | created_by | UUID | - | 登録者ID | NULL |
+| 登録日時 | created_at | TIMESTAMP | - | 登録日時 | DEFAULT NOW() |
+| 更新者 | updated_by | UUID | - | 更新者ID | NULL |
+| 更新日時 | updated_at | TIMESTAMP | - | 更新日時 | DEFAULT NOW() |
 
 **初期データ：**
 - 春（3-5月）：桜、花見、いちご狩り、菜の花、ピクニック
@@ -34,35 +43,40 @@
 **テーブル名：** records  
 **目的：** ユーザーのお出かけ記録管理
 
-| 項目名 | データ型 | 説明 | 制約 |
-|--------|----------|------|------|
-| 記録ID | UUID | 主キー | NOT NULL, PRIMARY KEY |
-| ユーザーID | UUID | ユーザーテーブル外部キー | NOT NULL, FOREIGN KEY |
-| 日付 | 日付 | お出かけ日付 | NOT NULL |
-| 写真URL | 文字列 | 写真ファイルのURL | NULL許可 |
-| コメント | 文字列 | 感想・メモ | NOT NULL |
-| 歩数 | 整数 | 歩数（Phase 1は手動入力） | NULL許可 |
-| 移動時間（分） | 整数 | 移動にかかった時間 | NULL許可 |
-| 移動手段 | 文字列 | walk/bicycle/public/car | NULL許可 |
-| 季節キーワード | 文字列 | 選択したキーワード | NOT NULL |
-| スポット名 | 文字列 | 訪問したスポット名 | NOT NULL |
-| 作成日時 | タイムスタンプ | 記録作成日時 | DEFAULT NOW() |
+| 項目名 | 物理名 | データ型 | 桁数 | 説明 | 制約 |
+|--------|---------|----------|------|------|------|
+| ID | id | UUID | - | 主キー | NOT NULL, PRIMARY KEY |
+| ユーザーID | user_id | UUID | - | ユーザーテーブル外部キー | NOT NULL, FOREIGN KEY |
+| 日付 | date | DATE | - | お出かけ日付 | NOT NULL |
+| 写真URL | photo_url | VARCHAR | 500 | 写真ファイルのURL | NULL |
+| コメント | comment | TEXT | - | 感想・メモ | NOT NULL |
+| 歩数 | steps | INTEGER | - | 歩数（Phase 1は手動入力） | CHECK(steps >= 0 AND steps <= 99999) |
+| 移動時間（分） | travel_time_minutes | INTEGER | - | 移動にかかった時間 | CHECK(travel_time_minutes >= 0 AND travel_time_minutes <= 9999) |
+| 移動手段 | transport_method | VARCHAR | 1 | 1:徒歩、2:自転車、3:公共交通機関、4:車 | CHECK(transport_method IN ('1','2','3','4')) |
+| 季節キーワード | season_keyword | VARCHAR | 20 | 選択したキーワード | NOT NULL |
+| スポット名 | spot_name | VARCHAR | 50 | 訪問したスポット名 | NOT NULL |
+| 登録者 | created_by | UUID | - | 登録者ID | NULL |
+| 登録日時 | created_at | TIMESTAMP | - | 登録日時 | DEFAULT NOW() |
+| 更新者 | updated_by | UUID | - | 更新者ID | NULL |
+| 更新日時 | updated_at | TIMESTAMP | - | 更新日時 | DEFAULT NOW() |
 
 ### Wishリストテーブル（Phase 2）
 **テーブル名：** wishlist  
 **目的：** 行きたいスポットの管理
 
-| 項目名 | データ型 | 説明 | 制約 |
-|--------|----------|------|------|
-| WishリストID | UUID | 主キー | NOT NULL, PRIMARY KEY |
-| ユーザーID | UUID | ユーザーテーブル外部キー | NOT NULL, FOREIGN KEY |
-| スポット名 | 文字列 | 行きたいスポット名 | NOT NULL |
-| 距離 | 文字列 | 現在地からの距離（例：1.2km） | NULL許可 |
-| 移動時間 | 文字列 | 移動時間（例：徒歩15分） | NULL許可 |
-| 説明 | 文字列 | スポットの説明文 | NULL許可 |
-| 季節キーワード | 文字列 | 関連する季節キーワード | NULL許可 |
-| 完了フラグ | 真偽値 | 訪問済みかどうか | DEFAULT FALSE |
-| 作成日時 | タイムスタンプ | 追加日時 | DEFAULT NOW() |
+| 項目名 | 物理名 | データ型 | 桁数 | 説明 | 制約 |
+|--------|---------|----------|------|------|------|
+| ID | id | UUID | - | 主キー | NOT NULL, PRIMARY KEY |
+| ユーザーID | user_id | UUID | - | ユーザーテーブル外部キー | NOT NULL, FOREIGN KEY |
+| スポット名 | spot_name | VARCHAR | 50 | 行きたいスポット名 | NOT NULL |
+| 移動時間 | travel_time | VARCHAR | 50 | 移動時間（例：徒歩15分） | NULL |
+| 説明 | description | TEXT | - | スポットの説明文 | NULL |
+| 季節キーワード | season_keyword | VARCHAR | 20 | 関連する季節キーワード | NULL |
+| 完了フラグ | is_completed | BOOLEAN | - | 訪問済みかどうか | DEFAULT FALSE |
+| 登録者 | created_by | UUID | - | 登録者ID | NULL |
+| 登録日時 | created_at | TIMESTAMP | - | 登録日時 | DEFAULT NOW() |
+| 更新者 | updated_by | UUID | - | 更新者ID | NULL |
+| 更新日時 | updated_at | TIMESTAMP | - | 更新日時 | DEFAULT NOW() |
 
 ---
 
@@ -75,13 +89,19 @@
 - **エンドポイント：** POST /api/auth/anonymous
 - **機能：** 新規匿名ユーザーを作成
 - **入力：** なし
-- **出力：** ユーザーID、匿名ID
+- **出力：** ユーザーID、端末識別ID
 
 #### ユーザー情報取得
-- **エンドポイント：** GET /api/auth/user/{匿名ID}
+- **エンドポイント：** POST /api/auth/user
 - **機能：** 既存ユーザー情報を取得
-- **入力：** 匿名ID（URLパラメータ）
-- **出力：** ユーザー情報
+- **入力：** 端末識別ID（リクエストボディ）
+- **出力：** ユーザー情報（ID、端末識別ID、ユーザー名、プロフィール画像URL、作成日時）
+
+#### ユーザー情報更新
+- **エンドポイント：** PUT /api/auth/user
+- **機能：** ユーザー名とプロフィール画像を更新
+- **入力：** 端末識別ID、ユーザー名、プロフィール画像（リクエストボディ）
+- **出力：** 更新されたユーザー情報
 
 ### 季節キーワードAPI
 **目的：** 季節キーワードの取得
@@ -255,8 +275,17 @@
 
 ### 各画面のレイアウト設計
 
+#### 0. ユーザー情報設定画面（初回のみ）
+- **ヘッダー：** 「プロフィール設定」+ スキップボタン
+- **メイン：**
+  - プロフィール画像選択エリア（デフォルト画像表示）
+  - カメラロールボタン
+  - ユーザー名入力フィールド（プレースホルダー：「ニックネーム（任意）」）
+- **フッター：** 「設定完了」ボタン（季節カラー）
+- **背景：** 現在の季節に応じた背景色
+
 #### 1. カレンダー画面（トップ）
-- **ヘッダー：** 現在の月表示 + 季節アイコン
+- **ヘッダー：** 現在の月表示 + 季節アイコン + プロフィール画像（右上、小サイズ）
 - **メイン：** 7×6のカレンダーグリッド
 - **記録表示：** 記録のある日付に小さな丸マーク
 - **季節背景：** 月に応じた背景色変更
@@ -346,5 +375,3 @@
 - **コード分割：** 動的インポート活用
 - **キャッシュ戦略：** Static Generation活用
 - **API制限対応：** レート制限とエラーハンドリング
-
-この設計書に基づいて実装を進めることで、要件定義書の通りのアプリケーションが完成します。

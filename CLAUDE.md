@@ -32,9 +32,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## アーキテクチャ特徴
 
 ### 認証フロー
-1. 初回アクセス時: 匿名ユーザー自動作成
-2. プロフィール設定画面表示（スキップ可能）
-3. 端末識別IDをlocalStorageで管理
+1. 初回アクセス時: ログイン画面表示
+2. ゲストログイン: 匿名ユーザー自動作成
+3. プロフィール設定画面表示（スキップ可能）
+4. 端末識別IDをlocalStorageで管理
 
 ### 画面構成
 - **ボトムナビゲーション**: カレンダー（トップ）、季節キーワード、Wishリスト
@@ -65,3 +66,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **操作性**: 記録登録は3ステップ以内
 - **データ整合性**: CHECK制約による入力値制限
 - **セキュリティ**: APIキーはサーバーサイド管理、HTTPS必須
+
+## 設計ドキュメント参照
+
+開発時は以下のドキュメントを必ず参照すること：
+
+- **`docs/requirements.md`** - 要件定義書：機能要件、非機能要件、画面フロー
+- **`docs/design.md`** - 設計書：データベース設計、API設計、画面設計、プロンプト設計
+- **`docs/issue.md`** - 実装タスク：ユーザーストーリー、受け入れ基準、タスク詳細
+
+これらのドキュメントに記載された仕様に従って実装を行い、不明点があれば必ずドキュメントを確認してから質問すること。
+
+## 重要な注意事項
+
+### ハイドレーションエラー対策
+Next.jsのSSRでサーバーとクライアントのHTML差分によるエラーを防ぐため、以下を必須とする：
+
+1. **Date.now()、Math.random()等の動的値は禁止**: サーバーとクライアントで異なる値になるため
+2. **季節判定は必ずuseEffect内で実行**: クライアント側でのみ実行されるようにする
+3. **mounted状態でクライアント専用処理を制御**: サーバーとクライアントで同一のHTMLを保証
+4. **初期表示は静的な内容**: ローディング画面等でサーバー・クライアント差分を回避
+
+### 必須パターン
+```tsx
+const [mounted, setMounted] = useState(false)
+const [season, setSeason] = useState<SeasonType>('spring')
+
+useEffect(() => {
+  setMounted(true)
+  setSeason(getCurrentSeason()) // Date依存処理はここで実行
+}, [])
+
+if (!mounted) {
+  return <div>読み込み中...</div> // サーバー・クライアント共通の表示
+}
+// mounted後のみ動的コンテンツを表示
+```
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+
+      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.

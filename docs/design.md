@@ -11,7 +11,7 @@
 | ID | id | UUID | - | 主キー | NOT NULL, PRIMARY KEY |
 | 端末識別ID | device_id | VARCHAR | 255 | 端末識別用ID | NOT NULL, UNIQUE |
 | ユーザー名 | user_name | VARCHAR | 10 | 表示用ユーザー名 | NULL |
-| プロフィール画像 | profile_image | VARCHAR | 500 | プロフィール画像URL | NULL |
+| プロフィール画像 | profile_image | TEXT | - | プロフィール画像（Base64エンコード） | NULL |
 | 登録者 | created_by | UUID | - | 登録者ID | NULL |
 | 登録日時 | created_at | TIMESTAMP | - | 登録日時 | DEFAULT NOW() |
 | 更新者 | updated_by | UUID | - | 更新者ID | NULL |

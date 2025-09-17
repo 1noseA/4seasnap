@@ -32,14 +32,29 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { device_id, user_name, profile_image } = await request.json()
+    const requestData = await request.json()
+    const { device_id, user_name, profile_image } = requestData
+
+    console.log('PUT /api/auth/user called with:', {
+      device_id,
+      user_name,
+      profile_image_length: profile_image ? profile_image.length : 0
+    })
 
     if (!device_id) {
+      console.error('Device ID is missing')
       return NextResponse.json({ error: 'Device ID is required' }, { status: 400 })
     }
 
     if (user_name && user_name.length > 10) {
+      console.error('User name too long:', user_name)
       return NextResponse.json({ error: 'User name must be 10 characters or less' }, { status: 400 })
+    }
+
+    // プロフィール画像のサイズチェック（圧縮後でも100KB制限）
+    if (profile_image && profile_image.length > 100000) {
+      console.error('Profile image too large:', profile_image.length)
+      return NextResponse.json({ error: 'Profile image is too large' }, { status: 400 })
     }
 
     const { data: existingUser } = await supabase

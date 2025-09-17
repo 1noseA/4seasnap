@@ -180,6 +180,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const updateUser = async (userData: { user_name?: string; profile_image?: string }) => {
     try {
+      console.log('Updating user with data:', userData)
+      console.log('Device ID:', deviceId)
+
       const response = await fetch('/api/auth/user', {
         method: 'PUT',
         headers: {
@@ -191,7 +194,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }),
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response URL:', response.url)
+
       if (!response.ok) {
+        const errorData = await response.text()
+        console.error('API error response:', errorData)
         throw new Error('Failed to update user')
       }
 

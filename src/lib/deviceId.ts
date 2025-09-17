@@ -7,13 +7,16 @@ export const getDeviceId = (): string => {
     return ''
   }
 
-  let deviceId = localStorage.getItem(DEVICE_ID_KEY)
+  return localStorage.getItem(DEVICE_ID_KEY) || ''
+}
 
-  if (!deviceId) {
-    deviceId = uuidv4()
-    localStorage.setItem(DEVICE_ID_KEY, deviceId)
+export const generateDeviceId = (): string => {
+  if (typeof window === 'undefined') {
+    return ''
   }
 
+  const deviceId = uuidv4()
+  localStorage.setItem(DEVICE_ID_KEY, deviceId)
   return deviceId
 }
 

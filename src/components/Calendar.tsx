@@ -1,14 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSeason } from '@/hooks/useSeason'
 import DebugPanel from './DebugPanel'
 
 export default function Calendar() {
-  const { user } = useAuth()
-  const [currentDate] = useState(new Date())
+  const { user, logout } = useAuth()
+  const [currentDate, setCurrentDate] = useState<Date | null>(null)
   const { season, mounted, seasonColors, seasonIcons } = useSeason()
+
+  useEffect(() => {
+    setCurrentDate(new Date())
+  }, [])
+
+  const handleLogout = () => {
+    logout()
+  }
 
   const formatMonth = (date: Date) => {
     return `${date.getFullYear()}年${date.getMonth() + 1}月`
@@ -35,16 +43,17 @@ export default function Calendar() {
     return days
   }
 
-  const days = getDaysInMonth(currentDate)
   const weekdays = ['日', '月', '火', '水', '木', '金', '土']
 
-  if (!mounted) {
+  if (!mounted || !currentDate) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-gray-600">読み込み中...</div>
       </div>
     )
   }
+
+  const days = getDaysInMonth(currentDate)
 
   return (
     <div className={`min-h-screen ${seasonColors[season]}`}>
@@ -57,11 +66,19 @@ export default function Calendar() {
             </h1>
             <span className="text-2xl">{seasonIcons[season]}</span>
           </div>
-          {user?.profile_image && (
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">
-              {user.profile_image}
-            </div>
-          )}
+          <div className="flex items-center space-x-3">
+            {user?.profile_image && (
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">
+                {user.profile_image}
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="text-sm text-red-500 hover:text-red-700 px-2 py-1 rounded border border-red-300 hover:border-red-500"
+            >
+              ログアウト
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">

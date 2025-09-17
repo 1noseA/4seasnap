@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User } from '@/types'
-import { getDeviceId, setDeviceId } from '@/lib/deviceId'
+import { getDeviceId, setDeviceId, generateDeviceId } from '@/lib/deviceId'
 
 interface AuthContextType {
   user: User | null
@@ -10,6 +10,7 @@ interface AuthContextType {
   isLoading: boolean
   isLoggedIn: boolean
   login: () => Promise<void>
+  logout: () => void
   updateUser: (userData: { user_name?: string; profile_image?: string }) => Promise<void>
 }
 
@@ -30,7 +31,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null)
   const [deviceId, setDeviceIdState] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -39,7 +40,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // 既存のデバイスIDがあるかチェック
     const existingDeviceId = getDeviceId()
     if (existingDeviceId) {
+      setDeviceIdState(existingDeviceId)
       checkExistingUser(existingDeviceId)
+    } else {
+      setIsLoading(false)
     }
   }, [])
 
@@ -73,18 +77,75 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true)
 
-      // 新規匿名ユーザーを作成
+      let currentDeviceId = getDeviceId()
+
+      // 既存の端末IDがある場合はそれを使用
+      if (currentDeviceId) {
+        const userResponse = await fetch('/api/auth/user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ device_id: currentDeviceId }),
+        })
+
+        if (userResponse.ok) {
+          // 既存ユーザーが見つかった場合
+          const userData = await userResponse.json()
+          setUser(userData)
+          setDeviceIdState(currentDeviceId)
+          setIsLoggedIn(true)
+          return
+        } else if (userResponse.status === 404) {
+          // 端末IDはあるがユーザーが見つからない場合
+          console.log('Device ID exists but user not found, creating new user with existing device ID')
+
+          // 既存の端末IDで新規匿名ユーザーを作成
+          const response = await fetch('/api/auth/anonymous', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ device_id: currentDeviceId }),
+          })
+
+          if (!response.ok) {
+            throw new Error('Failed to create anonymous user')
+          }
+
+          // ユーザー情報を取得
+          const newUserResponse = await fetch('/api/auth/user', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ device_id: currentDeviceId }),
+          })
+
+          if (newUserResponse.ok) {
+            const userData = await newUserResponse.json()
+            setUser(userData)
+            setDeviceIdState(currentDeviceId)
+            setIsLoggedIn(true)
+            return
+          }
+        }
+      }
+
+      // 新規ユーザーまたは既存ユーザーが見つからない場合、新規作成
+      const newDeviceId = generateDeviceId()
+
       const response = await fetch('/api/auth/anonymous', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ device_id: newDeviceId }),
       })
 
       if (!response.ok) {
         throw new Error('Failed to create anonymous user')
       }
-
-      const data = await response.json()
-      const newDeviceId = data.device_id
-      setDeviceId(newDeviceId)
 
       // ユーザー情報を取得
       const userResponse = await fetch('/api/auth/user', {
@@ -107,6 +168,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const logout = () => {
+    setUser(null)
+    setDeviceIdState('')
+    setIsLoggedIn(false)
+    setIsLoading(false)
+    // 注意: 端末IDはlocalStorageに保持（再ログイン時に同じIDを使用）
   }
 
   const updateUser = async (userData: { user_name?: string; profile_image?: string }) => {
@@ -143,6 +212,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isLoading,
         isLoggedIn,
         login,
+        logout,
         updateUser,
       }}
     >

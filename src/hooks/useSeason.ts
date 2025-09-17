@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 
 export type SeasonType = 'spring' | 'summer' | 'autumn' | 'winter'
 
-export const getSeason = (): SeasonType => {
-  const month = new Date().getMonth() + 1
+export const getSeason = (date?: Date): SeasonType => {
+  const month = (date || new Date()).getMonth() + 1
   if (month >= 3 && month <= 5) return 'spring'
   if (month >= 6 && month <= 8) return 'summer'
   if (month >= 9 && month <= 11) return 'autumn'
@@ -16,7 +16,7 @@ export const useSeason = () => {
 
   useEffect(() => {
     setMounted(true)
-    setSeason(getSeason())
+    setSeason(getSeason(new Date()))
   }, [])
 
   const seasonColors = {

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     // 既存の端末IDがある場合はそれを使用、ない場合は新規生成
     const deviceId = existingDeviceId || uuidv4()
 
-    const { data: userData, error: userError } = await supabase
+    const { error: userError } = await supabase
       .from('users')
       .insert({
         id: authData.user.id,

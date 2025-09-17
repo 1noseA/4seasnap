@@ -11,7 +11,7 @@ const DEFAULT_PROFILE_IMAGES = [
 
 export default function ProfileSetup() {
   const router = useRouter()
-  const { user, updateUser, isLoading } = useAuth()
+  const { updateUser, isLoading } = useAuth()
   const [userName, setUserName] = useState('')
   const [selectedImage, setSelectedImage] = useState('🌸')
   const [isUploading, setIsUploading] = useState(false)

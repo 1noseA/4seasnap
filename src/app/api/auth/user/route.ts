@@ -35,12 +35,6 @@ export async function PUT(request: NextRequest) {
     const requestData = await request.json()
     const { device_id, user_name, profile_image } = requestData
 
-    console.log('PUT /api/auth/user called with:', {
-      device_id,
-      user_name,
-      profile_image_length: profile_image ? profile_image.length : 0
-    })
-
     if (!device_id) {
       console.error('Device ID is missing')
       return NextResponse.json({ error: 'Device ID is required' }, { status: 400 })

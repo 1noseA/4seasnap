@@ -11,7 +11,7 @@ const DEFAULT_PROFILE_IMAGES = [
 
 export default function ProfileSetup() {
   const router = useRouter()
-  const { user, updateUser, isLoading } = useAuth()
+  const { updateUser, isLoading } = useAuth()
   const [userName, setUserName] = useState('')
   const [selectedImage, setSelectedImage] = useState('🌸')
   const [isUploading, setIsUploading] = useState(false)
@@ -30,11 +30,88 @@ export default function ProfileSetup() {
     fileInputRef.current?.click()
   }
 
+  const compressAndConvertImage = (file: File) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+
+    img.onload = () => {
+      // プロフィール画像サイズ: 最大200x200px
+      const maxSize = 200
+      let { width, height } = img
+
+      // アスペクト比を保持してリサイズ
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width
+          width = maxSize
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height
+          height = maxSize
+        }
+      }
+
+      canvas.width = width
+      canvas.height = height
+
+      // 画像を描画
+      ctx?.drawImage(img, 0, 0, width, height)
+
+      // 圧縮品質を調整してBase64変換
+      let quality = 0.8
+      let base64 = ''
+
+      const tryCompress = () => {
+        base64 = canvas.toDataURL('image/jpeg', quality)
+
+        // サイズチェック（仮に50KB制限）
+        if (base64.length > 66000 && quality > 0.1) {
+          quality -= 0.1
+          tryCompress()
+        } else {
+          setSelectedImage(base64)
+          setError('')
+        }
+      }
+
+      tryCompress()
+    }
+
+    img.onerror = () => {
+      setError('画像の読み込みに失敗しました')
+    }
+
+    // FileをImageに読み込み
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      img.src = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      console.log('File selected:', file)
+      // ファイルサイズチェック（5MB制限 - 圧縮処理前の元ファイル）
+      if (file.size > 5 * 1024 * 1024) {
+        setError('画像サイズは5MB以下にしてください')
+        return
+      }
+
+      // 画像ファイルかチェック
+      if (!file.type.startsWith('image/')) {
+        setError('画像ファイルを選択してください')
+        return
+      }
+
+      // 画像を圧縮してBase64に変換
+      compressAndConvertImage(file)
     }
+
+    // input値をリセット（同じファイルを再選択可能にする）
+    event.target.value = ''
   }
 
   const handleSave = async () => {
@@ -48,7 +125,7 @@ export default function ProfileSetup() {
       setError('')
 
       await updateUser({
-        user_name: userName || null,
+        user_name: userName.trim() || undefined,
         profile_image: selectedImage
       })
 
@@ -90,8 +167,16 @@ export default function ProfileSetup() {
         <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
           <div className="text-center">
             <div className="mb-4">
-              <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center text-4xl mb-4">
-                {selectedImage}
+              <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4 overflow-hidden">
+                {selectedImage.startsWith('data:') ? (
+                  <img
+                    src={selectedImage}
+                    alt="プロフィール画像"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl">{selectedImage}</span>
+                )}
               </div>
               <button
                 onClick={handleImageUpload}

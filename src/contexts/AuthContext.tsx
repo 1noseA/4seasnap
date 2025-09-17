@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User } from '@/types'
-import { getDeviceId, setDeviceId, generateDeviceId } from '@/lib/deviceId'
+import { getDeviceId, generateDeviceId } from '@/lib/deviceId'
 
 interface AuthContextType {
   user: User | null
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setIsLoading(true)
 
-      let currentDeviceId = getDeviceId()
+      const currentDeviceId = getDeviceId()
 
       // 既存の端末IDがある場合はそれを使用
       if (currentDeviceId) {
@@ -97,9 +97,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setIsLoggedIn(true)
           return
         } else if (userResponse.status === 404) {
-          // 端末IDはあるがユーザーが見つからない場合
-          console.log('Device ID exists but user not found, creating new user with existing device ID')
-
           // 既存の端末IDで新規匿名ユーザーを作成
           const response = await fetch('/api/auth/anonymous', {
             method: 'POST',
@@ -192,6 +189,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       })
 
       if (!response.ok) {
+        const errorData = await response.text()
+        console.error('API error response:', errorData)
         throw new Error('Failed to update user')
       }
 

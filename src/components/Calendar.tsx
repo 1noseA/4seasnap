@@ -68,8 +68,16 @@ export default function Calendar() {
           </div>
           <div className="flex items-center space-x-3">
             {user?.profile_image && (
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">
-                {user.profile_image}
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg overflow-hidden">
+                {user.profile_image.startsWith('data:') ? (
+                  <img
+                    src={user.profile_image}
+                    alt="プロフィール画像"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span>{user.profile_image}</span>
+                )}
               </div>
             )}
             <button

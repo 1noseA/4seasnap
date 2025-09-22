@@ -177,39 +177,71 @@ export default function Calendar() {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {weekdays.map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
-                {day}
-              </div>
-            ))}
-          </div>
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            {/* 曜日ヘッダー */}
+            <div className="grid grid-cols-7 bg-gray-50">
+              {weekdays.map((day, index) => (
+                <div
+                  key={day}
+                  className={`text-center text-sm font-medium py-3 ${
+                    index < 6 ? 'border-r border-gray-300' : ''
+                  } border-b border-gray-300 ${
+                    index === 0 ? 'text-red-500' : index === 6 ? 'text-blue-500' : 'text-gray-700'
+                  }`}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((day, index) => (
-              <div key={index} className="aspect-square">
-                {day && (
-                  <button
-                    className="w-full h-full flex flex-col items-center justify-center text-sm hover:bg-gray-50 rounded relative"
-                    onClick={() => handleDateClick(day)}
+            {/* カレンダーグリッド */}
+            <div className="grid grid-cols-7">
+              {days.map((day, index) => {
+                const col = index % 7
+                const row = Math.floor(index / 7)
+                const totalRows = Math.ceil(days.length / 7)
+
+                // 右境界線: 列が0-5の場合（最後の列以外）
+                const showRightBorder = col < 6
+                // 下境界線: 最後の行以外
+                const showBottomBorder = row < totalRows - 1
+
+                return (
+                  <div
+                    key={index}
+                    className={`aspect-square ${
+                      showRightBorder ? 'border-r border-gray-300' : ''
+                    } ${
+                      showBottomBorder ? 'border-b border-gray-300' : ''
+                    }`}
                   >
-                    <div className="flex flex-col items-center justify-start h-full py-1">
-                      {/* 日付を常に上に配置（統一） */}
-                      <span className="text-gray-800 text-sm font-medium mb-1">{day}</span>
+                    {day ? (
+                      <button
+                        className="w-full h-full flex flex-col items-center justify-between text-sm hover:bg-gray-50 transition-colors p-1"
+                        onClick={() => handleDateClick(day)}
+                      >
+                        {/* 日付を上に配置 */}
+                        <span className="text-gray-800 text-sm font-medium mt-1">{day}</span>
 
-                      {/* スタンプエリア（記録がある場合のみ表示） */}
-                      <div className="flex-1 flex items-center justify-center">
-                        {hasRecordForDate(day) && (
-                          <div className={`w-8 h-8 rounded-full ${seasonPrimaryColors[season]} shadow-lg flex items-center justify-center border-2 border-white`}>
-                            <div className="text-white text-sm font-bold">{seasonIcons[season]}</div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                )}
-              </div>
-            ))}
+                        {/* スタンプエリア */}
+                        <div className="flex-1 flex items-center justify-center min-h-0">
+                          {hasRecordForDate(day) && (
+                            <div className={`w-7 h-7 rounded-full ${seasonPrimaryColors[season]} shadow-md flex items-center justify-center border-2 border-white`}>
+                              <span className="text-white text-sm font-bold">{seasonIcons[season]}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 下部のスペーサー */}
+                        <div className="h-1"></div>
+                      </button>
+                    ) : (
+                      <div className="w-full h-full bg-gray-50"></div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 

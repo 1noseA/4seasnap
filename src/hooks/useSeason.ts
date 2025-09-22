@@ -20,24 +20,31 @@ export const useSeason = () => {
   }, [])
 
   const seasonColors = {
-    spring: 'bg-pink-50',
-    summer: 'bg-sky-50',
-    autumn: 'bg-orange-50',
-    winter: 'bg-blue-50'
+    spring: 'season-spring',
+    summer: 'season-summer',
+    autumn: 'season-autumn',
+    winter: 'season-winter'
+  }
+
+  const seasonPrimaryColors = {
+    spring: 'bg-[var(--spring-primary)]',
+    summer: 'bg-[var(--summer-primary)]',
+    autumn: 'bg-[var(--autumn-primary)]',
+    winter: 'bg-[var(--winter-primary)]'
   }
 
   const seasonBorderColors = {
-    spring: 'border-pink-200',
-    summer: 'border-sky-200',
-    autumn: 'border-orange-200',
-    winter: 'border-blue-200'
+    spring: 'border-[var(--spring-border)]',
+    summer: 'border-[var(--summer-border)]',
+    autumn: 'border-[var(--autumn-border)]',
+    winter: 'border-[var(--winter-border)]'
   }
 
   const seasonButtonColors = {
-    spring: 'bg-pink-500 hover:bg-pink-600',
-    summer: 'bg-sky-500 hover:bg-sky-600',
-    autumn: 'bg-orange-500 hover:bg-orange-600',
-    winter: 'bg-blue-500 hover:bg-blue-600'
+    spring: 'bg-[var(--spring-primary)] hover:bg-[var(--spring-primary)]/80 text-[var(--spring-text)]',
+    summer: 'bg-[var(--summer-primary)] hover:bg-[var(--summer-primary)]/80 text-[var(--summer-text)]',
+    autumn: 'bg-[var(--autumn-primary)] hover:bg-[var(--autumn-primary)]/80 text-[var(--autumn-text)]',
+    winter: 'bg-[var(--winter-primary)] hover:bg-[var(--winter-primary)]/80 text-[var(--winter-text)]'
   }
 
   const seasonIcons = {
@@ -51,6 +58,7 @@ export const useSeason = () => {
     season,
     mounted,
     seasonColors,
+    seasonPrimaryColors,
     seasonBorderColors,
     seasonButtonColors,
     seasonIcons

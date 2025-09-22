@@ -3,6 +3,31 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* 季節別カラーテーマ */
+  /* 春（3-5月）：桜色系 */
+  --spring-primary: #FFB7C5;
+  --spring-bg: #FFF8F0;
+  --spring-border: #FFDBDB;
+  --spring-text: #8B5A5A;
+
+  /* 夏（6-8月）：スカイブルー系 */
+  --summer-primary: #87CEEB;
+  --summer-bg: #F0F8FF;
+  --summer-border: #B8E6FF;
+  --summer-text: #2E5F8B;
+
+  /* 秋（9-11月）：ベージュ系 */
+  --autumn-primary: #DEB887;
+  --autumn-bg: #FFF8DC;
+  --autumn-border: #EED5B7;
+  --autumn-text: #8B7355;
+
+  /* 冬（12-2月）：ライトスチールブルー系 */
+  --winter-primary: #B0C4DE;
+  --winter-bg: #F8F8FF;
+  --winter-border: #D6D6F5;
+  --winter-text: #4F6D8E;
 }
 
 @theme inline {
@@ -10,6 +35,27 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* 季節別カラー定義 */
+  --color-spring-primary: var(--spring-primary);
+  --color-spring-bg: var(--spring-bg);
+  --color-spring-border: var(--spring-border);
+  --color-spring-text: var(--spring-text);
+
+  --color-summer-primary: var(--summer-primary);
+  --color-summer-bg: var(--summer-bg);
+  --color-summer-border: var(--summer-border);
+  --color-summer-text: var(--summer-text);
+
+  --color-autumn-primary: var(--autumn-primary);
+  --color-autumn-bg: var(--autumn-bg);
+  --color-autumn-border: var(--autumn-border);
+  --color-autumn-text: var(--autumn-text);
+
+  --color-winter-primary: var(--winter-primary);
+  --color-winter-bg: var(--winter-bg);
+  --color-winter-border: var(--winter-border);
+  --color-winter-text: var(--winter-text);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,4 +69,52 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* 季節別ユーティリティクラス */
+.season-spring {
+  background-color: var(--spring-bg);
+  color: var(--spring-text);
+}
+
+.season-summer {
+  background-color: var(--summer-bg);
+  color: var(--summer-text);
+}
+
+.season-autumn {
+  background-color: var(--autumn-bg);
+  color: var(--autumn-text);
+}
+
+.season-winter {
+  background-color: var(--winter-bg);
+  color: var(--winter-text);
+}
+
+/* セーフエリア対応 */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* スマートフォン最適化 */
+@media screen and (max-width: 767px) {
+  .max-w-md {
+    max-width: 100%;
+  }
+
+  /* タッチ操作最適化 */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* フォントサイズ最適化 */
+  .text-xs {
+    font-size: 12px;
+  }
+
+  .text-sm {
+    font-size: 14px;
+  }
 }

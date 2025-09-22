@@ -3,12 +3,36 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSeason } from '@/hooks/useSeason'
+import { useRecords } from '@/hooks/useRecords'
+import { useMockRecords } from '@/hooks/useMockRecords'
+import BottomNavigation from './BottomNavigation'
 import DebugPanel from './DebugPanel'
 
 export default function Calendar() {
   const { user, logout } = useAuth()
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
-  const { season, mounted, seasonColors, seasonIcons } = useSeason()
+  const { season, mounted, seasonColors, seasonPrimaryColors, seasonIcons } = useSeason()
+
+  const year = currentDate?.getFullYear() || new Date().getFullYear()
+  const month = (currentDate?.getMonth() || new Date().getMonth()) + 1
+
+  // 実際のデータベースが利用可能な場合は useRecords を使用
+  // デモンストレーション用にはモックデータを使用
+  const { hasRecordForDate, getRecordsForDate } = useMockRecords(user?.id || 'demo-user', year, month)
+
+  const handleNavigation = (tab: 'calendar' | 'keywords' | 'wishlist') => {
+    switch (tab) {
+      case 'calendar':
+        // 既にカレンダー画面なので何もしない
+        break
+      case 'keywords':
+        window.location.href = '/keywords'
+        break
+      case 'wishlist':
+        window.location.href = '/wishlist'
+        break
+    }
+  }
 
   useEffect(() => {
     setCurrentDate(new Date())
@@ -45,6 +69,19 @@ export default function Calendar() {
 
   const weekdays = ['日', '月', '火', '水', '木', '金', '土']
 
+  const handleDateClick = (date: number) => {
+    const records = getRecordsForDate(date)
+    console.log('Debug - Calendar handleDateClick:', {
+      date,
+      records: records.map(r => ({ id: r.id, spot_name: r.spot_name })),
+      firstRecordId: records[0]?.id
+    })
+
+    if (records.length > 0) {
+      window.location.href = `/record/${records[0].id}`
+    }
+  }
+
   if (!mounted || !currentDate) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -56,7 +93,7 @@ export default function Calendar() {
   const days = getDaysInMonth(currentDate)
 
   return (
-    <div className={`min-h-screen ${seasonColors[season]}`}>
+    <div className={`min-h-screen ${seasonColors[season]} pb-20`}>
       <DebugPanel />
       <div className="max-w-md mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
@@ -102,8 +139,14 @@ export default function Calendar() {
             {days.map((day, index) => (
               <div key={index} className="aspect-square">
                 {day && (
-                  <button className="w-full h-full flex items-center justify-center text-sm hover:bg-gray-50 rounded">
-                    {day}
+                  <button
+                    className="w-full h-full flex flex-col items-center justify-center text-sm hover:bg-gray-50 rounded relative"
+                    onClick={() => handleDateClick(day)}
+                  >
+                    <span className="text-gray-800">{day}</span>
+                    {hasRecordForDate(day) && (
+                      <div className={`w-2 h-2 rounded-full ${seasonPrimaryColors[season]} mt-1`} />
+                    )}
                   </button>
                 )}
               </div>
@@ -117,22 +160,7 @@ export default function Calendar() {
         </div>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
-        <div className="max-w-md mx-auto flex justify-around">
-          <button className="flex flex-col items-center py-2 text-blue-500">
-            <span className="text-xl">📅</span>
-            <span className="text-xs">カレンダー</span>
-          </button>
-          <button className="flex flex-col items-center py-2 text-gray-400">
-            <span className="text-xl">🌸</span>
-            <span className="text-xs">季節キーワード</span>
-          </button>
-          <button className="flex flex-col items-center py-2 text-gray-400">
-            <span className="text-xl">❤️</span>
-            <span className="text-xs">Wishリスト</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNavigation activeTab="calendar" onTabChange={handleNavigation} />
     </div>
   )
 }

@@ -1,0 +1,190 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { Record } from '@/types/record'
+import { useSeason } from '@/hooks/useSeason'
+import { useMockRecords } from '@/hooks/useMockRecords'
+
+export default function RecordDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const [record, setRecord] = useState<Record | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { season, mounted, seasonColors, seasonPrimaryColors, seasonIcons } = useSeason()
+
+  // モックデータから記録を取得
+  const currentDate = new Date()
+  const { getRecordById, loading: mockLoading, records } = useMockRecords('demo-user', currentDate.getFullYear(), currentDate.getMonth() + 1)
+
+  useEffect(() => {
+    console.log('Debug - RecordDetail useEffect:', {
+      paramId: params.id,
+      mockLoading,
+      recordsLength: records.length,
+      availableIds: records.map(r => r.id)
+    })
+
+    if (params.id && !mockLoading) {
+      // モックデータの読み込みが完了してから検索
+      const mockRecord = getRecordById(params.id as string)
+      console.log('Debug - Found record:', mockRecord)
+
+      if (mockRecord) {
+        setRecord(mockRecord)
+        setError(null)
+      } else {
+        setError('記録が見つかりません')
+      }
+      setLoading(false)
+    }
+  }, [params.id, getRecordById, mockLoading, records])
+
+  const fetchRecordFromAPI = async (id: string) => {
+    try {
+      const response = await fetch(`/api/records/${id}`)
+      if (!response.ok) {
+        throw new Error('記録が見つかりません')
+      }
+      const data = await response.json()
+      setRecord(data.record)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'エラーが発生しました')
+    }
+  }
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
+  }
+
+  const getTransportMethodText = (method: string) => {
+    const methods = {
+      '1': '徒歩',
+      '2': '自転車',
+      '3': '公共交通機関',
+      '4': '車'
+    }
+    return methods[method as keyof typeof methods] || '不明'
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600">読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
+        <div className="text-gray-600">記録を読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (error || !record) {
+    return (
+      <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">{error || '記録が見つかりません'}</p>
+          <button
+            onClick={() => router.back()}
+            className={`px-4 py-2 rounded-lg text-white bg-[var(--${season}-primary)] hover:bg-[var(--${season}-primary)]/80`}
+          >
+            戻る
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`min-h-screen ${seasonColors[season]}`}>
+      <div className="max-w-md mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center text-gray-600 hover:text-gray-800"
+          >
+            <span className="mr-2">←</span>
+            戻る
+          </button>
+          <div className="flex items-center space-x-2">
+            <span className="text-2xl">{seasonIcons[season]}</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {record.photo_url && (
+            <div className="aspect-video bg-gray-100">
+              {record.photo_url.startsWith('data:') ? (
+                <img
+                  src={record.photo_url}
+                  alt="記録写真"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  {record.photo_url}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="p-6">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-800 mb-2">{record.spot_name}</h1>
+              <p className="text-gray-600">{formatDate(record.date)}</p>
+            </div>
+
+            <div className="mb-6">
+              <div className={`inline-block px-3 py-1 rounded-full text-sm text-white bg-[var(--${season}-primary)]`}>
+                {record.season_keyword}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">感想・メモ</h3>
+              <p className="text-gray-800 leading-relaxed">{record.comment}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {record.steps > 0 && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-sm text-gray-600">歩数</p>
+                  <p className="text-lg font-semibold text-gray-800">{record.steps.toLocaleString()}歩</p>
+                </div>
+              )}
+
+              {record.travel_time_minutes > 0 && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-sm text-gray-600">移動時間</p>
+                  <p className="text-lg font-semibold text-gray-800">{record.travel_time_minutes}分</p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-sm text-gray-600">移動手段</p>
+                <p className="text-lg font-semibold text-gray-800">{getTransportMethodText(record.transport_method)}</p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-sm text-gray-600">季節</p>
+                <p className="text-lg font-semibold text-gray-800">{seasonIcons[season]} {record.season_keyword}</p>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-400 text-center">
+                {record.id.startsWith('mock-') ? 'デモンストレーション用のデータです' : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

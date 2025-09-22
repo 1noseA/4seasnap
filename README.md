@@ -1,109 +1,120 @@
-# 4Seasnap
+# 4Seasnap - 季節を感じるお出かけ記録アプリ
 
-季節を感じるお出かけ記録アプリケーション
+## 🎯 概要
 
-## プロジェクト概要
+「4Seasnap」は季節を感じる外出を記録するWebアプリケーションです。季節のキーワードからAIレコメンドでスポットを探し、訪問記録をカレンダーにスタンプとして残すことで外出のモチベーション向上を図ります。
 
-「4Seasnap」は季節のキーワードからAIレコメンドでスポットを探し、訪問記録をカレンダーにスタンプとして残すWebアプリケーションです。
+## 🚀 クイックスタート
 
-## 技術スタック
-
-- **フロントエンド**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- **バックエンド**: Supabase (PostgreSQL, Auth, Storage)
-- **認証**: Supabase匿名認証 + 端末識別ID
-- **デプロイ**: Vercel
-
-## セットアップ手順
-
-### 1. 依存関係のインストール
+### 開発環境の起動
 
 ```bash
+# 依存関係のインストール
 npm install
-```
 
-### 2. 環境変数の設定
-
-`.env.local` ファイルを作成し、Supabaseの設定を追加：
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### 3. Supabaseテーブルの作成
-
-Supabaseダッシュボードで以下のSQLを実行してテーブルを作成：
-
-#### usersテーブル
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id VARCHAR(255) NOT NULL UNIQUE,
-  user_name VARCHAR(10),
-  profile_image VARCHAR(500),
-  created_by UUID,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_by UUID,
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- RLSポリシーを設定（匿名ユーザーがアクセス可能）
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow anonymous access to users" ON users
-  FOR ALL USING (true);
-```
-
-#### season_keywordsテーブル
-```sql
-CREATE TABLE season_keywords (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  keyword_name VARCHAR(20) NOT NULL,
-  season_type VARCHAR(1) NOT NULL CHECK(season_type IN ('1','2','3','4')),
-  month INTEGER NOT NULL CHECK(month BETWEEN 1 AND 12),
-  display_order INTEGER DEFAULT 0,
-  created_by UUID,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_by UUID,
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
-ALTER TABLE season_keywords ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow anonymous read access to season_keywords" ON season_keywords
-  FOR SELECT USING (true);
-
--- 初期データの投入
-INSERT INTO season_keywords (keyword_name, season_type, month, display_order) VALUES
-  ('桜', '1', 4, 1),
-  ('花見', '1', 4, 2),
-  ('いちご狩り', '1', 3, 3),
-  ('菜の花', '1', 3, 4),
-  ('ピクニック', '1', 5, 5),
-  ('花火', '2', 7, 1),
-  ('海', '2', 7, 2),
-  ('プール', '2', 8, 3),
-  ('かき氷', '2', 8, 4),
-  ('夏祭り', '2', 8, 5),
-  ('紅葉', '3', 11, 1),
-  ('月見', '3', 9, 2),
-  ('ハロウィン', '3', 10, 3),
-  ('栗拾い', '3', 10, 4),
-  ('コスモス', '3', 10, 5),
-  ('クリスマス', '4', 12, 1),
-  ('雪', '4', 1, 2),
-  ('イルミネーション', '4', 12, 3),
-  ('温泉', '4', 2, 4),
-  ('梅', '4', 2, 5);
-```
-
-### 4. 開発サーバーの起動
-
-```bash
+# 開発サーバーの起動
 npm run dev
 ```
 
-http://localhost:3000 でアプリケーションにアクセスできます。
+開発サーバーが起動します（通常 `http://localhost:3001`）。
+
+### 📱 デモンストレーション
+
+**現在、アプリはモックデータを使用してデモンストレーションできます：**
+
+1. ブラウザで開発サーバーのURLにアクセス
+2. 「ゲストログイン」をクリック
+3. プロフィール設定（スキップ可能）
+4. **カレンダー画面で記録のある日付（3日、7日、12日、18日、25日）をクリック**
+5. 記録詳細画面で内容を確認
+6. ボトムナビゲーションで各画面への遷移を確認
+
+## 🛠️ 技術スタック
+
+- **フロントエンド**: Next.js 15 (App Router) + TypeScript + Tailwind CSS 4
+- **バックエンド**: Supabase (PostgreSQL, Auth, Storage)
+- **認証**: Supabase匿名認証 + 端末識別ID
+- **外部API**: Google Gemini 2.0 Flash（Phase 2予定）
+- **デプロイ**: Vercel
+
+## 📋 実装済み機能
+
+### ✅ カレンダー機能
+- 7×6グリッドの月カレンダー表示
+- 記録のある日付にスタンプ（季節カラーの丸マーク）表示
+- 季節に応じた背景色の自動変更
+- 現在月・季節アイコン・プロフィール画像を含むヘッダー
+
+### ✅ 季節テーマシステム
+- 春（桜色系）、夏（スカイブルー系）、秋（ベージュ系）、冬（ライトスチールブルー系）
+- CSS変数による統一的なカラー管理
+- 季節アイコンの自動切り替え
+
+### ✅ 記録システム
+- 記録詳細画面（写真、コメント、歩数、移動時間、移動手段）
+- 記録のある日付からの詳細画面遷移
+- モックデータによるデモンストレーション
+
+### ✅ ナビゲーション
+- ボトムナビゲーション（カレンダー、季節キーワード、Wishリスト）
+- アクティブ状態の視覚的フィードバック
+- 各画面への遷移機能
+
+### ✅ レスポンシブ対応
+- スマートフォン最適化（375px〜414px）
+- タッチ操作対応（最小44px）
+- セーフエリア対応
+
+## 🎨 デザインシステム
+
+### 季節別カラーテーマ
+
+| 季節 | 期間 | 主要色 | 背景色 | アイコン |
+|------|------|--------|--------|----------|
+| 春 | 3-5月 | #FFB7C5 | #FFF8F0 | 🌸 |
+| 夏 | 6-8月 | #87CEEB | #F0F8FF | 🌻 |
+| 秋 | 9-11月 | #DEB887 | #FFF8DC | 🍁 |
+| 冬 | 12-2月 | #B0C4DE | #F8F8FF | ⛄ |
+
+## 🔧 セットアップ
+
+### 環境変数
+
+`.env.local` ファイルを作成し、以下を設定：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### データベースセットアップ
+
+1. Supabase管理画面でプロジェクトを作成
+2. `scripts/setup-database.sql` のSQLを実行してテーブルを作成
+3. テーブル確認: `npm run check-tables`
+4. テストデータ作成: `npm run create-test-data`
+
+## 🎯 コマンド
+
+```bash
+# 開発サーバー起動
+npm run dev
+
+# ビルド
+npm run build
+
+# 本番サーバー起動
+npm start
+
+# リンティング
+npm run lint
+
+# データベーステーブル確認
+npm run check-tables
+
+# テストデータ作成
+npm run create-test-data
+```
 
 ## 機能
 

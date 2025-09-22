@@ -1,80 +1,188 @@
 import { useState, useEffect } from 'react'
 import { Record } from '@/types/record'
 
-// モックデータ用のテスト記録
+// 具体的な日付とイベントを持つモックデータを生成
 const generateMockRecords = (year: number, month: number): Record[] => {
-  const mockRecords: Record[] = [
-    {
-      id: 'mock-1',
-      user_id: 'mock-user',
-      date: `${year}-${month.toString().padStart(2, '0')}-03`,
-      comment: '桜が満開でとても綺麗でした！お花見をして春の訪れを感じました。家族みんなで楽しい時間を過ごしました。',
-      steps: 8500,
-      travel_time_minutes: 45,
-      transport_method: '1',
-      season_keyword: '桜',
-      spot_name: '上野公園',
-      photo_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-2',
-      user_id: 'mock-user',
-      date: `${year}-${month.toString().padStart(2, '0')}-07`,
-      comment: 'いちご狩りを楽しみました。甘くて美味しいいちごをたくさん食べることができて満足です。',
-      steps: 3200,
-      travel_time_minutes: 60,
-      transport_method: '3',
-      season_keyword: 'いちご狩り',
-      spot_name: '○○いちご農園',
-      photo_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-3',
-      user_id: 'mock-user',
-      date: `${year}-${month.toString().padStart(2, '0')}-12`,
-      comment: '菜の花畑が一面に広がっていて、黄色い絨毯のようでした。写真をたくさん撮りました。天気も良くて最高の1日でした。',
-      steps: 6800,
-      travel_time_minutes: 30,
-      transport_method: '2',
-      season_keyword: '菜の花',
-      spot_name: '河川敷菜の花畑',
-      photo_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-4',
-      user_id: 'mock-user',
-      date: `${year}-${month.toString().padStart(2, '0')}-18`,
-      comment: '公園でピクニックをしました。お弁当を作って、青空の下で食べると格別でした。子供たちも喜んでいました。',
-      steps: 4500,
-      travel_time_minutes: 20,
-      transport_method: '1',
-      season_keyword: 'ピクニック',
-      spot_name: '代々木公園',
-      photo_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-5',
-      user_id: 'mock-user',
-      date: `${year}-${month.toString().padStart(2, '0')}-25`,
-      comment: '花見スポットを散策しました。桜のトンネルがとても美しく、春を満喫できました。来年もまた来たいです。',
-      steps: 9200,
-      travel_time_minutes: 90,
-      transport_method: '3',
-      season_keyword: '花見',
-      spot_name: '千鳥ヶ淵',
-      photo_url: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ]
+  // 2024-2025年の具体的なテストデータ
+  const testData: { [key: string]: any[] } = {
+    '2024-10': [
+      {
+        date: '2024-10-06', keyword: 'コスモス', spot: '昭和記念公園', transport: '3',
+        comment: 'コスモス畑を見に行く',
+        steps: 8500, time: 90
+      },
+      {
+        date: '2024-10-13', keyword: 'コキア', spot: '国営ひたち海浜公園', transport: '4',
+        comment: 'コキアを見に行く',
+        steps: 9200, time: 180
+      },
+      {
+        date: '2024-10-26', keyword: 'ハロウィン', spot: '吉祥寺', transport: '3',
+        comment: 'ハロウィンのお菓子を食べる',
+        steps: 5800, time: 75
+      }
+    ],
+    '2024-11': [
+      {
+        date: '2024-11-10', keyword: 'モンブラン', spot: '吉祥寺', transport: '3',
+        comment: 'モンブランを食べる',
+        steps: 4500, time: 60
+      },
+      {
+        date: '2024-11-30', keyword: '紅葉', spot: '高尾山', transport: '3',
+        comment: '紅葉を見に行く',
+        steps: 12000, time: 180
+      }
+    ],
+    '2024-12': [
+      {
+        date: '2024-12-07', keyword: 'イルミネーション', spot: '六本木ヒルズ', transport: '3',
+        comment: 'イルミネーションを見に行く',
+        steps: 5500, time: 90
+      },
+      {
+        date: '2024-12-15', keyword: 'クリスマスマーケット', spot: '日比谷公園', transport: '3',
+        comment: 'クリスマスマーケットに行く',
+        steps: 6800, time: 120
+      },
+      {
+        date: '2024-12-31', keyword: '年越しそば', spot: '吉祥寺', transport: '3',
+        comment: '年越しそばを食べる',
+        steps: 4200, time: 60
+      }
+    ],
+    '2025-01': [
+      {
+        date: '2025-01-02', keyword: '初詣', spot: '明治神宮', transport: '3',
+        comment: '初詣に行く',
+        steps: 8900, time: 120
+      }
+    ],
+    '2025-02': [
+      {
+        date: '2025-02-08', keyword: 'バレンタイン', spot: '日本橋三越', transport: '3',
+        comment: 'バレンタインのチョコを買う',
+        steps: 6200, time: 90
+      },
+      {
+        date: '2025-02-22', keyword: '梅', spot: '湯島天神', transport: '3',
+        comment: '梅を見に行く',
+        steps: 4800, time: 75
+      }
+    ],
+    '2025-03': [
+      {
+        date: '2025-03-08', keyword: '河津桜', spot: '旧中川', transport: '3',
+        comment: '河津桜を見に行く',
+        steps: 7500, time: 120
+      },
+      {
+        date: '2025-03-23', keyword: '桜スイーツ', spot: '新宿', transport: '3',
+        comment: '桜スイーツを食べる',
+        steps: 5200, time: 90
+      }
+    ],
+    '2025-04': [
+      {
+        date: '2025-04-05', keyword: '桜', spot: '千鳥ヶ淵', transport: '3',
+        comment: '桜を見に行く',
+        steps: 8500, time: 120
+      },
+      {
+        date: '2025-04-13', keyword: 'チューリップ', spot: '昭和記念公園', transport: '3',
+        comment: 'チューリップを見に行く',
+        steps: 7500, time: 90
+      }
+    ],
+    '2025-05': [
+      {
+        date: '2025-05-03', keyword: '鯉のぼり', spot: '東京タワー', transport: '3',
+        comment: '鯉のぼりを見に行く',
+        steps: 6800, time: 90
+      },
+      {
+        date: '2025-05-18', keyword: '新緑', spot: '代々木公園', transport: '1',
+        comment: '新緑散歩',
+        steps: 5500, time: 60
+      }
+    ],
+    '2025-06': [
+      {
+        date: '2025-06-08', keyword: '紫陽花', spot: '鎌倉 長谷寺', transport: '3',
+        comment: '紫陽花を見に行く',
+        steps: 9800, time: 180
+      },
+      {
+        date: '2025-06-15', keyword: 'さくらんぼスイーツ', spot: '吉祥寺', transport: '3',
+        comment: 'さくらんぼスイーツを食べる',
+        steps: 4200, time: 75
+      }
+    ],
+    '2025-07': [
+      {
+        date: '2025-07-06', keyword: 'チョコミントスイーツ', spot: '原宿', transport: '3',
+        comment: 'チョコミントスイーツを食べる',
+        steps: 5800, time: 90
+      },
+      {
+        date: '2025-07-26', keyword: '花火', spot: '浅草', transport: '3',
+        comment: '隅田川花火大会を見る',
+        steps: 7200, time: 180
+      }
+    ],
+    '2025-08': [
+      {
+        date: '2025-08-04', keyword: 'ひまわり', spot: '昭和記念公園', transport: '3',
+        comment: 'ひまわり畑を見に行く',
+        steps: 8500, time: 120
+      },
+      {
+        date: '2025-08-10', keyword: '七夕祭り', spot: '杉並区阿佐ヶ谷', transport: '3',
+        comment: '阿佐ヶ谷七夕祭り',
+        steps: 6500, time: 150
+      },
+      {
+        date: '2025-08-24', keyword: '阿波踊り', spot: '杉並区高円寺', transport: '3',
+        comment: '高円寺阿波踊り',
+        steps: 7800, time: 180
+      }
+    ],
+    '2025-09': [
+      {
+        date: '2025-09-10', keyword: '月見バーガー', spot: 'マクドナルド', transport: '1',
+        comment: '月見バーガーを食べる',
+        steps: 1200, time: 30
+      },
+      {
+        date: '2025-09-14', keyword: 'いちじくスイーツ', spot: '吉祥寺', transport: '3',
+        comment: 'いちじくスイーツを食べる',
+        steps: 4200, time: 75
+      },
+      {
+        date: '2025-09-20', keyword: 'シャインマスカット', spot: '銀座', transport: '3',
+        comment: 'シャインマスカットを食べる',
+        steps: 5500, time: 90
+      }
+    ]
+  }
+
+  const yearMonthKey = `${year}-${month.toString().padStart(2, '0')}`
+  const data = testData[yearMonthKey] || []
+
+  const mockRecords: Record[] = data.map((item, index) => ({
+    id: `test-${yearMonthKey}-${index + 1}`,
+    user_id: 'demo-user',
+    date: item.date,
+    comment: item.comment,
+    steps: item.steps,
+    travel_time_minutes: item.time,
+    transport_method: item.transport as '1' | '2' | '3' | '4',
+    season_keyword: item.keyword,
+    spot_name: item.spot,
+    photo_url: undefined,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }))
 
   return mockRecords
 }

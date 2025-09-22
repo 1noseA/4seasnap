@@ -66,6 +66,16 @@ export default function RecordDetailPage() {
     return methods[method as keyof typeof methods] || '不明'
   }
 
+  const getSeasonText = (season: 'spring' | 'summer' | 'autumn' | 'winter') => {
+    const seasons = {
+      'spring': '春',
+      'summer': '夏',
+      'autumn': '秋',
+      'winter': '冬'
+    }
+    return seasons[season]
+  }
+
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -179,7 +189,7 @@ export default function RecordDetailPage() {
 
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-sm text-gray-600">季節</p>
-                <p className="text-lg font-semibold text-gray-800">{seasonIcons[season]} {record.season_keyword}</p>
+                <p className="text-lg font-semibold text-gray-800">{seasonIcons[season]} {getSeasonText(season)}</p>
               </div>
             </div>
 

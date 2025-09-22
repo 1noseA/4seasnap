@@ -19,25 +19,22 @@ export default function RecordDetailPage() {
   const { getRecordById, loading: mockLoading, records } = useMockRecords('demo-user', currentDate.getFullYear(), currentDate.getMonth() + 1)
 
   useEffect(() => {
-    console.log('Debug - RecordDetail useEffect:', {
-      paramId: params.id,
-      mockLoading,
-      recordsLength: records.length,
-      availableIds: records.map(r => r.id)
-    })
-
     if (params.id && !mockLoading) {
       // モックデータの読み込みが完了してから検索
       const mockRecord = getRecordById(params.id as string)
-      console.log('Debug - Found record:', mockRecord)
 
       if (mockRecord) {
         setRecord(mockRecord)
         setError(null)
       } else {
-        setError('記録が見つかりません')
+        // 実際のAPIからの取得を試行
+        fetchRecordFromAPI(params.id as string)
       }
       setLoading(false)
+    } else if (params.id && mockLoading) {
+      // モックデータ読み込み中はローディング状態を維持
+      setLoading(true)
+      setError(null)
     }
   }, [params.id, getRecordById, mockLoading, records])
 
@@ -77,10 +74,13 @@ export default function RecordDetailPage() {
     )
   }
 
-  if (loading) {
+  if (loading || mockLoading) {
     return (
       <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
-        <div className="text-gray-600">記録を読み込み中...</div>
+        <div className="text-center">
+          <div className="text-2xl mb-2">{seasonIcons[season]}</div>
+          <div className="text-gray-600">記録を読み込み中...</div>
+        </div>
       </div>
     )
   }
@@ -89,12 +89,18 @@ export default function RecordDetailPage() {
     return (
       <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
         <div className="text-center">
-          <p className="text-gray-600 mb-4">{error || '記録が見つかりません'}</p>
+          <div className="text-4xl mb-4">{seasonIcons[season]}</div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">
+            {error ? 'エラーが発生しました' : 'お出かけ記録が見つかりません'}
+          </h2>
+          <p className="text-gray-600 mb-4">
+            {error || 'この記録は削除されたか、存在しない可能性があります'}
+          </p>
           <button
             onClick={() => router.back()}
             className={`px-4 py-2 rounded-lg text-white bg-[var(--${season}-primary)] hover:bg-[var(--${season}-primary)]/80`}
           >
-            戻る
+            カレンダーに戻る
           </button>
         </div>
       </div>

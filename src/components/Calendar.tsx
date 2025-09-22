@@ -71,12 +71,6 @@ export default function Calendar() {
 
   const handleDateClick = (date: number) => {
     const records = getRecordsForDate(date)
-    console.log('Debug - Calendar handleDateClick:', {
-      date,
-      records: records.map(r => ({ id: r.id, spot_name: r.spot_name })),
-      firstRecordId: records[0]?.id
-    })
-
     if (records.length > 0) {
       window.location.href = `/record/${records[0].id}`
     }

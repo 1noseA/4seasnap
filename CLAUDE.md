@@ -79,6 +79,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 重要な注意事項
 
+### セキュリティ要件（必須遵守事項）
+**絶対に違反してはならないセキュリティルール：**
+
+1. **APIキーは絶対にソースコードに直接記載しない**
+   - Supabase URL、APIキー、その他の認証情報は環境変数（.env.local）で管理
+   - スクリプトファイルでは必ず `process.env` から読み込む
+   - 環境変数が未設定の場合はエラーで停止させる
+
+2. **環境変数ファイル（.env.local）はGitにコミットしない**
+   - .gitignoreで `.env*` が除外されていることを確認
+   - 環境変数の例は README.md に記載し、実際の値は含めない
+
+3. **本番環境では適切な環境変数管理システムを使用**
+   - Vercelの環境変数設定を利用
+   - 開発環境と本番環境で異なる値を設定
+
+### 必須実装パターン（スクリプトファイル）
+```typescript
+import * as dotenv from 'dotenv'
+
+// 環境変数を読み込み
+dotenv.config({ path: '.env.local' })
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Environment variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are required')
+  console.error('Please check your .env.local file')
+  process.exit(1)
+}
+```
+
 ### ハイドレーションエラー対策
 Next.jsのSSRでサーバーとクライアントのHTML差分によるエラーを防ぐため、以下を必須とする：
 
@@ -87,7 +120,7 @@ Next.jsのSSRでサーバーとクライアントのHTML差分によるエラー
 3. **mounted状態でクライアント専用処理を制御**: サーバーとクライアントで同一のHTMLを保証
 4. **初期表示は静的な内容**: ローディング画面等でサーバー・クライアント差分を回避
 
-### 必須パターン
+### 必須パターン（React コンポーネント）
 ```tsx
 const [mounted, setMounted] = useState(false)
 const [season, setSeason] = useState<SeasonType>('spring')

@@ -193,10 +193,19 @@ export default function Calendar() {
                     className="w-full h-full flex flex-col items-center justify-center text-sm hover:bg-gray-50 rounded relative"
                     onClick={() => handleDateClick(day)}
                   >
-                    <span className="text-gray-800">{day}</span>
-                    {hasRecordForDate(day) && (
-                      <div className={`w-2 h-2 rounded-full ${seasonPrimaryColors[season]} mt-1`} />
-                    )}
+                    <div className="flex flex-col items-center justify-start h-full py-1">
+                      {/* 日付を常に上に配置（統一） */}
+                      <span className="text-gray-800 text-sm font-medium mb-1">{day}</span>
+
+                      {/* スタンプエリア（記録がある場合のみ表示） */}
+                      <div className="flex-1 flex items-center justify-center">
+                        {hasRecordForDate(day) && (
+                          <div className={`w-8 h-8 rounded-full ${seasonPrimaryColors[season]} shadow-lg flex items-center justify-center border-2 border-white`}>
+                            <div className="text-white text-sm font-bold">{seasonIcons[season]}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </button>
                 )}
               </div>

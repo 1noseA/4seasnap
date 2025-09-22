@@ -136,6 +136,90 @@ if (!mounted) {
 // mounted後のみ動的コンテンツを表示
 ```
 
+## Supabaseデータ管理の重要な注意事項
+
+### テストデータの重複防止対策
+**問題**: スクリプトの複数実行により大量の重複データが蓄積される
+
+**解決策**: 以下の実装パターンを必須とする
+
+#### 1. テストデータ作成スクリプトの重複防止機能
+```typescript
+// 既存データをチェックして重複を避ける
+console.log('既存のテスト記録をチェック中...')
+const { data: existingRecords } = await supabase
+  .from('records')
+  .select('date')
+  .eq('user_id', userId)
+
+const existingDates = existingRecords?.map(r => r.date) || []
+const newRecords = testRecords.filter(record => !existingDates.includes(record.date))
+
+if (newRecords.length === 0) {
+  console.log('すべてのテスト記録が既に存在します')
+  return existingRecords
+}
+```
+
+#### 2. Supabase RLS（Row Level Security）ポリシーの設定
+**削除権限が必要な場合の対処法:**
+
+**方法1 - 削除ポリシーの追加（推奨）:**
+```sql
+CREATE POLICY "enable_delete_for_authenticated" ON records
+    FOR DELETE TO authenticated USING (true);
+```
+
+**方法2 - 一時的なRLS無効化（開発環境のみ）:**
+```sql
+-- クリーンアップ前
+ALTER TABLE records DISABLE ROW LEVEL SECURITY;
+
+-- クリーンアップ実行後
+ALTER TABLE records ENABLE ROW LEVEL SECURITY;
+```
+
+#### 3. セキュリティ強化 - URLパラメータでのユーザーID送信禁止
+**問題**: `GET /api/records?userId=xxx` でユーザーIDが露出
+
+**解決策**: POSTリクエストでボディに含める
+```typescript
+const response = await fetch('/api/records/fetch', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    user_id: userId,
+    year: year,
+    month: month,
+    include_demo: true
+  }),
+})
+```
+
+#### 4. 型安全性の確保
+**PostgreSQL UUID型とJavaScript文字列型の不一致エラー対策:**
+```sql
+-- 型キャストを明示的に行う
+CREATE POLICY "policy_name" ON records
+    FOR DELETE USING (
+        user_id::text = 'target-user-id' OR
+        auth.uid()::text = user_id::text
+    );
+```
+
+### 必須運用ルール
+
+1. **テストデータ作成前の確認**: 既存データの有無を必ずチェック
+2. **削除スクリプトの使用**: 重複が発生した場合は`scripts/cleanup-duplicates.ts`を使用
+3. **権限設定の事前確認**: Supabaseポリシーで削除権限が適切に設定されているか確認
+4. **セキュリティ最優先**: ユーザーIDは必ずリクエストボディで送信、URLに含めない
+
+### 利用可能なスクリプト
+
+- `scripts/create-test-data.ts` - 重複防止機能付きテストデータ作成
+- `scripts/cleanup-duplicates.ts` - 既存重複データのクリーンアップ
+- 使用方法: `npx tsx scripts/[スクリプト名]`
+
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.

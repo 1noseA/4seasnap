@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSeason } from '@/hooks/useSeason'
 import { useRecords } from '@/hooks/useRecords'
-import { useMockRecords } from '@/hooks/useMockRecords'
 import BottomNavigation from './BottomNavigation'
 import DebugPanel from './DebugPanel'
 
@@ -16,9 +15,7 @@ export default function Calendar() {
   const year = currentDate?.getFullYear() || new Date().getFullYear()
   const month = (currentDate?.getMonth() || new Date().getMonth()) + 1
 
-  // 実際のデータベースが利用可能な場合は useRecords を使用
-  // デモンストレーション用にはモックデータを使用
-  const { hasRecordForDate, getRecordsForDate } = useMockRecords(user?.id || 'demo-user', year, month)
+  const { hasRecordForDate, getRecordsForDate, loading, error } = useRecords(user?.id, year, month)
 
   const handleNavigation = (tab: 'calendar' | 'keywords' | 'wishlist') => {
     switch (tab) {
@@ -76,10 +73,53 @@ export default function Calendar() {
     }
   }
 
+  const goToPreviousMonth = () => {
+    if (currentDate) {
+      const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+      setCurrentDate(newDate)
+    }
+  }
+
+  const goToNextMonth = () => {
+    if (currentDate) {
+      const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+      setCurrentDate(newDate)
+    }
+  }
+
   if (!mounted || !currentDate) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-gray-600">読み込み中...</div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
+        <div className="text-center">
+          <div className="text-2xl mb-2">{seasonIcons[season]}</div>
+          <div className="text-gray-600">記録を読み込み中...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
+        <div className="text-center">
+          <div className="text-4xl mb-4">{seasonIcons[season]}</div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">エラーが発生しました</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className={`px-4 py-2 rounded-lg text-white bg-[var(--${season}-primary)] hover:bg-[var(--${season}-primary)]/80`}
+          >
+            再読み込み
+          </button>
+        </div>
       </div>
     )
   }
@@ -91,11 +131,27 @@ export default function Calendar() {
       <DebugPanel />
       <div className="max-w-md mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-gray-800">
-              {formatMonth(currentDate)}
-            </h1>
-            <span className="text-2xl">{seasonIcons[season]}</span>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={goToPreviousMonth}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="前の月"
+            >
+              <span className="text-xl">←</span>
+            </button>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-xl font-bold text-gray-800">
+                {formatMonth(currentDate)}
+              </h1>
+              <span className="text-2xl">{seasonIcons[season]}</span>
+            </div>
+            <button
+              onClick={goToNextMonth}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="次の月"
+            >
+              <span className="text-xl">→</span>
+            </button>
           </div>
           <div className="flex items-center space-x-3">
             {user?.profile_image && (

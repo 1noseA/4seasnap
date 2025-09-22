@@ -168,9 +168,13 @@ const generateMockRecords = (year: number, month: number): Record[] => {
 
   const yearMonthKey = `${year}-${month.toString().padStart(2, '0')}`
   const data = testData[yearMonthKey] || []
+  console.log(`generateMockRecords: Looking for key "${yearMonthKey}", found:`, data.length, 'records')
 
-  const mockRecords: Record[] = data.map((item, index) => ({
-    id: `test-${yearMonthKey}-${index + 1}`,
+  const mockRecords: Record[] = data.map((item, index) => {
+    // 日付から日部分を取得してIDに使用
+    const day = item.date.split('-')[2]
+    return {
+    id: `test-${yearMonthKey}-${day}`,
     user_id: 'demo-user',
     date: item.date,
     comment: item.comment,
@@ -182,7 +186,8 @@ const generateMockRecords = (year: number, month: number): Record[] => {
     photo_url: undefined,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
-  }))
+  }
+  })
 
   return mockRecords
 }
@@ -201,6 +206,7 @@ export const useMockRecords = (userId: string | undefined, year: number, month: 
     // モックデータの生成をシミュレート
     setTimeout(() => {
       const mockData = generateMockRecords(year, month)
+      console.log(`Loading data for ${year}-${month.toString().padStart(2, '0')}:`, mockData)
       setRecords(mockData)
       setLoading(false)
     }, 300) // 300msの遅延でAPIアクセスをシミュレート

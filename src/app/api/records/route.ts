@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get('year')
     const month = searchParams.get('month')
     const userId = searchParams.get('userId')
+    const includeDemo = searchParams.get('includeDemo') === 'true'
 
     if (!year || !month || !userId) {
       return NextResponse.json(
@@ -21,15 +22,24 @@ export async function GET(request: NextRequest) {
     }
 
     const startDate = `${year}-${month.padStart(2, '0')}-01`
-    const endDate = `${year}-${month.padStart(2, '0')}-31`
+    const lastDayOfMonth = new Date(parseInt(year), parseInt(month), 0).getDate()
+    const endDate = `${year}-${month.padStart(2, '0')}-${lastDayOfMonth.toString().padStart(2, '0')}`
 
-    const { data: records, error } = await supabase
+    let query = supabase
       .from('records')
       .select('*')
-      .eq('user_id', userId)
       .gte('date', startDate)
       .lte('date', endDate)
       .order('date', { ascending: true })
+
+    if (includeDemo) {
+      // デモ用：現在のユーザーIDとtest-device-12345の両方のデータを取得
+      query = query.in('user_id', [userId, 'test-device-12345'])
+    } else {
+      query = query.eq('user_id', userId)
+    }
+
+    const { data: records, error } = await query
 
     if (error) {
       console.error('Supabase error:', error)
@@ -39,7 +49,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ records })
+    // デモ用の場合、どのデータがテストデータかを明示
+    const recordsWithDemoFlag = records?.map(record => ({
+      ...record,
+      isDemo: record.user_id === 'test-device-12345'
+    })) || []
+
+    return NextResponse.json({ records: recordsWithDemoFlag })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(

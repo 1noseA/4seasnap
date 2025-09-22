@@ -7,25 +7,33 @@ export const useRecords = (userId: string | undefined, year: number, month: numb
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!userId) return
-
     const fetchRecords = async () => {
       setLoading(true)
       setError(null)
 
       try {
-        const response = await fetch(
-          `/api/records?year=${year}&month=${month}&userId=${userId}`
-        )
+        // セキュリティ改善：POSTでユーザーIDを送信
+        const response = await fetch('/api/records/fetch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId || 'demo-user-id',
+            year: year,
+            month: month,
+            include_demo: true
+          }),
+        })
 
         if (!response.ok) {
-          throw new Error('Failed to fetch records')
+          throw new Error('記録の取得に失敗しました')
         }
 
         const data = await response.json()
         setRecords(data.records || [])
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        setError(err instanceof Error ? err.message : 'エラーが発生しました')
         setRecords([])
       } finally {
         setLoading(false)
@@ -44,25 +52,38 @@ export const useRecords = (userId: string | undefined, year: number, month: numb
     return getRecordsForDate(date).length > 0
   }
 
-  const refreshRecords = async () => {
-    if (!userId) return
+  const getRecordById = (id: string): Record | undefined => {
+    return records.find(record => record.id === id)
+  }
 
+  const refreshRecords = async () => {
     setLoading(true)
     setError(null)
 
     try {
-      const response = await fetch(
-        `/api/records?year=${year}&month=${month}&userId=${userId}`
-      )
+      // セキュリティ改善：POSTでユーザーIDを送信
+      const response = await fetch('/api/records/fetch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId || 'demo-user-id',
+          year: year,
+          month: month,
+          include_demo: true
+        }),
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to fetch records')
+        throw new Error('記録の取得に失敗しました')
       }
 
       const data = await response.json()
       setRecords(data.records || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'エラーが発生しました')
+      setRecords([])
     } finally {
       setLoading(false)
     }
@@ -74,6 +95,7 @@ export const useRecords = (userId: string | undefined, year: number, month: numb
     error,
     getRecordsForDate,
     hasRecordForDate,
+    getRecordById,
     refreshRecords
   }
 }

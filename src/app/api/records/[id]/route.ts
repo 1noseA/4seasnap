@@ -6,11 +6,11 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey)
-    const recordId = params.id
+    const { id: recordId } = await params
 
     const { data: record, error } = await supabase
       .from('records')

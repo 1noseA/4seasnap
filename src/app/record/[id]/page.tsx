@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Record } from '@/types/record'
 import { useSeason } from '@/hooks/useSeason'
-import { useMockRecords } from '@/hooks/useMockRecords'
 
 export default function RecordDetailPage() {
   const params = useParams()
@@ -14,32 +13,17 @@ export default function RecordDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const { season, mounted, seasonColors, seasonPrimaryColors, seasonIcons } = useSeason()
 
-  // モックデータから記録を取得
-  const currentDate = new Date()
-  const { getRecordById, loading: mockLoading, records } = useMockRecords('demo-user', currentDate.getFullYear(), currentDate.getMonth() + 1)
-
   useEffect(() => {
-    if (params.id && !mockLoading) {
-      // モックデータの読み込みが完了してから検索
-      const mockRecord = getRecordById(params.id as string)
-
-      if (mockRecord) {
-        setRecord(mockRecord)
-        setError(null)
-      } else {
-        // 実際のAPIからの取得を試行
-        fetchRecordFromAPI(params.id as string)
-      }
-      setLoading(false)
-    } else if (params.id && mockLoading) {
-      // モックデータ読み込み中はローディング状態を維持
-      setLoading(true)
-      setError(null)
+    if (params.id) {
+      fetchRecordFromAPI(params.id as string)
     }
-  }, [params.id, getRecordById, mockLoading, records])
+  }, [params.id])
 
   const fetchRecordFromAPI = async (id: string) => {
     try {
+      setLoading(true)
+      setError(null)
+
       const response = await fetch(`/api/records/${id}`)
       if (!response.ok) {
         throw new Error('記録が見つかりません')
@@ -48,6 +32,8 @@ export default function RecordDetailPage() {
       setRecord(data.record)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -84,7 +70,7 @@ export default function RecordDetailPage() {
     )
   }
 
-  if (loading || mockLoading) {
+  if (loading) {
     return (
       <div className={`min-h-screen ${seasonColors[season]} flex items-center justify-center`}>
         <div className="text-center">
@@ -195,7 +181,7 @@ export default function RecordDetailPage() {
 
             <div className="mt-6 pt-4 border-t border-gray-100">
               <p className="text-xs text-gray-400 text-center">
-                {record.id.startsWith('mock-') ? 'デモンストレーション用のデータです' : ''}
+                記録ID: {record.id}
               </p>
             </div>
           </div>
